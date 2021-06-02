@@ -37,6 +37,17 @@ RSA System – asymmetric:
 	- Alice now has m
 - Trapdoor is discrete logarithm – given M, e, and n, computing m s.t. m^e = M (mod n) is hard
 
+## June 2, 2021
+
 Type View of Cryptography:
+- RSA:
+	- Prep :: { p : prime } -> { q : prime } -> ({ n : int }, { e : int }, { d : int })
+	- Encrypt :: { m : int } -> { e : int } -> { M : int }
+	- Decrypt :: { M : int } -> { d : int } -> { m : int }
 - Homomorphic Encryption:
-	- 
+	- Encrypt :: a -> k -> S a k
+	- Compute :: (a -> b) -> S a k -> S b k
+		- Note, this is just <$>
+		- Functor, not Monad
+	- Decrypt :: k -> S a k -> a
+
