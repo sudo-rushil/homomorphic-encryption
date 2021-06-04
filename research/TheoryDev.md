@@ -35,7 +35,9 @@ RSA System – asymmetric:
 	- Alice computes M^d = m^ed = m^(1+kϕ(n)) = m (mod n)
 		- Recall de = 1 (mod ϕ(n))
 	- Alice now has m
+- Difficulty is prime factorization problem – finding ϕ(n) is all that is needed to retrieve d, but this is impossible
 - Trapdoor is discrete logarithm – given M, e, and n, computing m s.t. m^e = M (mod n) is hard
+	- Note, this is actually difficulty with Diffie-Hellman
 
 ## June 2, 2021
 
@@ -53,15 +55,35 @@ Type View of Cryptography:
 - MPC:
 	- Encrypt :: a -> S a
 	- Combine :: [S a] -> ([a] -> b) -> b
-	- Note: there is NO way to "decrypt" an encrypted value – no reason to do so!
+	- Note: there is NO way to "decrypt" an encrypted value
 
 System Brainstorming:
-- 
+- Comparisons of values before and after encryption should be same
+- Working from encrypted to plaintext value should be impossible
+	- Only original holder should know their value
 
+## June 3, 2021
 
+System Brainstorming:
+- System of input numbers x,y \in Z/nZ, and encryption function e
+- Have that two orthogonal values remain orthogonal, but no other
+	- if (x,y)=1, then (e(x),e(y)) = 1, but it is *not* true that (x,y)=(e(x),e(y)) in general
+		- Such a condition would imply an orthogonal transformation, which is easily invertable
+- Pick N, e, and d as in RSA
+- Encrypt – X = x^e, Y = y^e
+- Then, X x Y = 1 iff xy = 1, but X and Y *cannot* be worked back into x and y!
+- Decrypt – X^d, or Y^d
 
+Explanation:
+- Why is it sufficient for us to only check whether two numbers are modular inverses?
+	- Because any behavior can be encoded as such!
+	- E.g. if (a,b) matches in R then there will be a mapping into a space where (a',b')=1
+- Need mapping from 2^k -> Z/nZ
+	- Constructable in initialization of system
+	- Can support N/2 unique pairs at most
 
-
-
-
+To Implement:
+- Mapping from problem space to Z/nZ space
+- Encryption algorithm
+- Streamlit example
 
