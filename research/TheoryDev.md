@@ -83,7 +83,16 @@ Explanation:
 	- Can support N/2 unique pairs at most
 
 To Implement:
-- Mapping from problem space to Z/nZ space
+- Example mapping from problem space to Z/nZ space
+	- Function documentation!
 - Encryption algorithm
 - Streamlit example
 
+## June 4, 2021
+
+Paper Structure:
+- Introduction
+- Theory – Algorithm, Proof of Correctness, Proof of Reducability to Strong RSA
+- Implementation – Python code, performance benchmarks, examples
+- Discussion – Reflect on performance, ease of implementation, and 
+- Conclusion

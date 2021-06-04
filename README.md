@@ -6,4 +6,4 @@ FLHS senior experience project on paired homomorphic encryption systems
 
 - project: Project code files
 - research: Papers, literature review, and theory brainstorming
-- files: Paper and presentation
+- paper: Paper
