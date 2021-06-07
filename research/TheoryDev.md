@@ -17,7 +17,6 @@ Goals for system:
 	- E.g. utilize the image of protein folding as a to-be-reduced NP-complete problem for an uninvertable lock
 	- https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2443096/
 - Be fast, and easy to implement
-- Demo w/ Streamlit
 
 ## June 1, 2021
 
@@ -86,7 +85,6 @@ To Implement:
 - Example mapping from problem space to Z/nZ space
 	- Function documentation!
 - Encryption algorithm
-- Streamlit example
 
 ## June 4, 2021
 

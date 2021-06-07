@@ -13,17 +13,46 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{prop}[theorem]{Proposition}
 
+\providecommand{\keywords}[1]
+{
+  \small    
+  \textbf{\textit{Keywords ---}} #1
+}
 
 % Title content
 \title{Development and Implementation of\\Novel Pair Value Encryption System}
-\author{Rushil Mallarapu}
+\author{Rushil Mallarapu\footnote{\textit{rushil.mallarapu@gmail.com}}}
 \date{June 6, 2021}
 
 \begin{document}
 
 \maketitle
 
-\section{}
+\begin{abstract}
+    Multiparty cryptography (MPC) is a cryptographic paradigm that seeks to have multiple, mutually distrustful parties compute a joint function of their inputs. Homomorphic encryption (HE) is a related, but distinct paradigm that seeks to allow arbitrary computations to be lifted over encrypted data. In both cases, general versions of such protocols are highly complex, requiring multiple rounds of communication, introducing implementation weaknesses and overheads which limit their practical efficacy. This research merges the insights behind these paradigms to develop what we term Pair Value Encryption (PVE), a lightweight protocol for performing arbitrary Boolean comparisons over encrypted data originating from potentially distrustful parties. We propose an abstract definition for PVE systems, demonstrate a protocol implementing this specification, and prove this protocol is both correct and secure. Python implementation and an example use case in patient matching in healthcare systems demonstrate both the low overhead and real-world applicability of this paradigm.
+\end{abstract}
+
+\keywords{Multiparty Communication, Homomorphic Encryption, RSA}
+
+\section{Introduction}
+
+
+
+\section{Theory}
+
+Theory – Algorithm, Proof of Correctness, Proof of Reducability to Strong RSA
+
+\section{Implementation}
+
+Implementation – Python code, performance benchmarks, examples
+
+\section{Discussion}
+
+Discussion – Reflect on performance, ease of implementation, and 
+
+\section{Conclusion}
+
+\newpage
 
 Use Euler's theorem to compute:
 
@@ -40,8 +69,6 @@ First, we verify that 5 and 21 are coprime, which they are. Then, we compute $\p
 
 As before, we verify that 2 and 35 are coprime, which they are. Next, we compute $\phi(35)$ by decomposing 35 as its prime factorization $35 = 5 \cdot 7$. Thus, $\phi(35) = \phi(5)\phi(7) = 4 \cdot 6 = 24$. Now, by Euler's theorem, it holds that $2^{24} \equiv 1 \pmod{35}$. Dividing 35 by 24 gives $35 = 1 \cdot 24 + 11$, by the division algorithm. Therefore, $2^{35} \equiv (2^{24})^1 \cdot 2^{11} \equiv 1^1 \cdot 2^{11} \equiv 2048 \pmod{35}$. From here, we can use the division algorithm to divide 2048 by 35, giving $2048 = 58 \cdot 35 + 18$. Thus, $2^{35} \equiv 18 \pmod{35}$.
 
-\newpage
-
 \section{}
 
 Find the last two digits of $123^{403}$.
@@ -49,8 +76,6 @@ Find the last two digits of $123^{403}$.
 \subsection{}
 
 We want to find the value of $123^{403} \pmod{100}$. First, we verify that 123 and 100 are coprime, as indeed they are. Now, we find $\phi(100) = \phi(2^2 \cdot 5^2) = \phi(2^2)\phi(5^2) = (4 - 2)(25 - 5) = 2 \cdot 20 = 40$ as per the usual method. Thus, by Euler's theorem, we have that $123^{40} \equiv 1 \pmod{100}$. Using the division algorithm, we have that $403 = 10 \cdot 40 + 3$. As such, $123^{403} \equiv (123^{40})^10 \cdot 123^3 \equiv 1^10 \cdot 123^3 \equiv 123^3 \equiv 1860867 \pmod{100}$. Finally, taking the last two digits of this, we have that $123^3 \equiv 67 \pmod{100}$. Thus, the final two digits of $123^{403}$ are 67.
-
-\newpage
 
 \section{}
 
@@ -80,7 +105,5 @@ $$
 $$
 
 Therefore, the solution to this congruence is $d \equiv 151 \cdot 1 \equiv 151 \pmod{352}$, and it is easy to verify that $7 \cdot 151 \equiv 1057 \equiv 1 \pmod{352}$. Thus, the decryption exponent is $d=151$.
-
-\newpage
 
 \end{document}
