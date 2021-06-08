@@ -6,6 +6,7 @@
 \usepackage[titletoc,title]{appendix}
 \usepackage{amsmath,amsfonts,amssymb,mathtools}
 \usepackage{amsthm}
+\usepackage[ruled,vlined, linesnumbered]{algorithm2e}
 % \usepackage{minted}
 \usepackage{polynom}
 
@@ -37,18 +38,117 @@
 \section{Introduction}
 
 
+(Need for communication)
+(MPC)
+(Homomorphic encryption)
+(Failings)
+(Introduce PVE)
+(Contributions)
+
+Cryptographic systems are designed to facilitate sensitive communication between secret agents. In the majority of standard practical protocols, such as RSA or Diffie-Hellman, these secret agents are mutually trustful, but are seeking to protect their communications from malicious external observers.
+
+Intelligence operations often require secret agents to communicate with other agents from different organizations. When two spies meet to exchange secrets, they use a type of secret handshake to ensure that the parties participating in the exchange are the ones intended. For example, an FBI agent may want to communicate only with CIA agents, and if this is not the case, the communication should drop without revealing membership information and why the communication failed. This form of live drop communication,1 when parties are online and interact, has been implemented in cryptography and it is referred to as secret handshake (SH) protocol [10]. In SH, two parties agree on the same secret key only if they are both from the same group. Privacy is preserved in the sense that, if the handshake fails, nobody learns anything relevant other than the participants are not in the same group. In SH with dynamic matching [7], groups and roles can even be determined just before the protocol execution.
+
+Malicious software, or malware, is used for a variety of unauthorized actions, from information theft to targeted denial of computational resources. Malware is estimated to cost the national economy between $57 billion and $109 billion, making it imperative to develop novel technologies to mitigate its ability to achieve its goals [1]. For it to do so, malware needs to communicate with a command and control (CC) center, to relay instructions, collect information, and receive updates. Botmasters – CC controllers – used to hardcode IPs to allow communicating with their malware, leading to the connections being shut down upon discovery of the malware. To address this, malware engineers designed domain generation algorithms (DGAs) to allow CC communication with malware could persist even after detection.
+
+Embedded into many forms of malware, domain generation algorithms work by randomly producing thousands of domain names and attempting to resolve all of them against its DNS server [2]-[3]. The botmaster only needs to have registered a few of these domain names. When the malware-embedded DGA generates a domain that the botmaster has registered, it is able to establish a valid IP address and communicate with the CC center. As such, detecting DGA domains presents an asymmetric challenge to defenders: with standard blacklisting, defenders would need to keep registering generatable domains, while attackers would only need one successful connection to communicate or execute malware [4]. DGA- based malware includes Conficker, Stuxnet (the malware such, cybersecurity methodologies require an intelligent way of detecting and responding to the use of DGAs by malware in order to assure network security.
+
+The binary classification problem this research addresses – detect whether a domain is maliciously generated or a genuine address – is well-researched in information security [5]. Knowledge of whether a domain name itself is genuine or malicious is especially useful, as gathering contextual information can present an additional overhead or may be unavailable within certain situations. Some algorithms use WHOIS and NXDomain records to gather rough predictions on whether a domain name is DGA. More recently, Curtin et al. proposed an RNN architecture for detecting DGA domains based on domain name and WHOIS data, but they acknowledged that their model was limited by disputes regarding the ability for open access to domain metadata [6].
+
+Standard techniques for DGA detection with machine learning over domain names involve classification based on engineered text features, but this makes the model both vulnerable to adversarial training and impeded in detecting classifiable boundaries when observed DGA features overlap with those of genuine domains [5]. The use of deep learning methodologies enables DGA detection algorithms to avoid the dependence on feature engineering, as such models learn implicit features. As such, active research on DGA detection focuses on developing various deep learning architectures suited to the task, see e.g. [5]-[7]. We report the development of DGAIntel, which implements a convolutional-recurrent architecture for binary DGA classification in a lightweight package easily deployable for usage by cybersecurity architects.
 
 \section{Theory}
 
+In this section, we describe the general PVE protocol, describe an algorithm achieving this protocol, prove that it provides the correct results, and finally, prove it it is as hard to break as RSA.
+
+\subsection{PVE Protocol}
+
+Pair value encryption derives from a biomimetic influence – the core idea behind the protocol reflects the behavior of protein folding. In biological systems, chains of amino acids fold and combine into proteins, which can recognize other substrates and proteins by way of steric (i.e. in real space) matching. However, the key amino acid chain is obfuscated by the complex, often hard-to-predict process of protein folding\footnote{Of interest in this analogy is the fact that the protein folding problem is NP-complete}. Thus, the PVE protocol was derived to function on a similar basis – the encryption step should obfuscate plaintext values, but the comparison step should combine two matched ciphertext values to reduce to a simple Boolean variable.
+
+Consider an arbitrary set of potentially distrustful agents, each of has a secret value that they want to compare in some Boolean fashion to those of other agents. Let $X$ be the \textit{problem space}, or the set of possible values that an agent might take. Moreover, let $\phi:(X,X)\mapsto \{0,1\}$ be a binary comparison function over $X$. Let $Z$ be the \textit{plaintext space}, or set of values used to encode the problem set\footnote{Encrypted values are also in $Z$ – this has the benefit of meaning neither a malicious agent nor an outside observer can distinguish unencrypted from encrypted data}. This also implies the existance of an invertable mapping $\gamma:X\mapsto Z$, converting values in the problem space to the plaintext space. 
+
+The pair value encryption protocol is a set of three functions:
+
+\begin{enumerate}
+    \item $e: (Z,K) \mapsto Z$ – encrypt values, based on an encryption key
+    \item $c: (Z,Z) \mapsto \{0,1\}$ – compare encrypted values
+    \item $e: (Z,K) \mapsto Z$ – decrypt values, based on a decryption key
+\end{enumerate}
+
+In order to preserve the structure of the scenario as between $X$ and $\phi$, which depend on the use case, and $Z$, which depends on the implementation, we require that $\gamma$ be constructed such that the following lemma hold true.
+
+\begin{lemma}[Preservation]
+    For all $x,y\in X$, let $x' \coloneqq \gamma(x)$ and $y' \coloneqq \gamma(y)$. Then $c(e(x'), e(y')) \iff \phi(x,y)$.
+\end{lemma}
+
+\subsection{Algorithm}
+
+The implementation we present of the PVE system is based on the mathematics of RSA. First, we describe the initialization procedure for the algorithm, which selects the encryption and decryption keys.
+
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\KwIn{Two independent primes ($p$,$q$) }
+\KwResult{PVE modulus ($n$), encryption key ($e$), decryption key ($d$)}
+    $n \leftarrow p \cdot q$\;
+    $\phi(n) \leftarrow (p - 1) \cdot (q - 1)$\;
+    \For{$i \leftarrow Z$}{
+        \If{$\gcd(i,\phi(n))=1$}{
+        $e\leftarrow i$\;
+        }
+    }
+    $d \leftarrow e^{-1} \pmod{\phi(n)}$\;
+ \KwOut{(n,e,d)}
+ \caption{PVE Setup}
+\end{algorithm}
+
+Note that a necessary postcondition of this PVE initialization step is that $de \equiv 1 \pmod{\phi(n)}$. Now, we provide algorithms for the encryption, comparison, and decryption procedure.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\KwIn{Problem text ($x\in X$)}
+\KwData{PVE modulus ($n$), encryption key ($e$)}
+\KwResult{Ciphertext ($z'\in Z$)}
+    $z \leftarrow \gamma(x)$\;
+    $z' \leftarrow z^e \pmod{n}$\;
+ \KwOut{z'}
+ \caption{PVE Encryption}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\KwIn{Two ciphertexts ($z, z'\in Z$)}
+\KwData{PVE modulus ($n$)}
+\KwResult{Comparison ($cmp\in \{0,1\}$)}
+    $cmp \leftarrow z \cdot z' \pmod{n}$\;
+ \KwOut{cmp}
+ \caption{PVE Comparison}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\KwIn{Ciphertext ($z'\in Z$), decryption key ($d$)}
+\KwData{PVE modulus ($n$)}
+\KwResult{Problem text ($x\in X$)}
+    $z \leftarrow z'^d \pmod{n}$\;
+    $x \leftarrow \gamma^{-1}(z)$\;
+ \KwOut{x}
+ \caption{PVE Decryption}
+\end{algorithm}
+
+
+Hello
+
+Hello
+
+\theorem{Correctness of PVE}
 Theory – Algorithm, Proof of Correctness, Proof of Reducability to Strong RSA
 
 \section{Implementation}
 
-Implementation – Python code, performance benchmarks, examples
+Discussion – Reflect on performance, ease of implementation, and pitfalls in both RSA and PVE
 
-\section{Discussion}
-
-Discussion – Reflect on performance, ease of implementation, and 
+Implementation – Python code, examples
 
 \section{Conclusion}
 
