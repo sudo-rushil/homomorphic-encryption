@@ -91,6 +91,5 @@ To Implement:
 Paper Structure:
 - Introduction
 - Theory – Algorithm, Proof of Correctness, Proof of Reducability to Strong RSA
-- Implementation – Python code, performance benchmarks, examples
-- Discussion – Reflect on performance, ease of implementation, and 
+- Discussion – Python code, performance benchmarks, examples, Reflect on performance, ease of implementation, and 
 - Conclusion

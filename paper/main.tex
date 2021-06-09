@@ -1,14 +1,21 @@
 \documentclass{article}
 
 % Formatting
+\setlength{\skip\footins}{1.2pc plus 5pt minus 2pt}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=1in]{geometry}
 \usepackage[titletoc,title]{appendix}
 \usepackage{amsmath,amsfonts,amssymb,mathtools}
 \usepackage{amsthm}
+\usepackage{multicol}
+\setlength{\columnsep}{1cm}
 \usepackage[ruled,vlined, linesnumbered]{algorithm2e}
 % \usepackage{minted}
 \usepackage{polynom}
+\newcommand{\bibent}{\noindent \hangindent 40pt}
+
+\newenvironment{workscited}{\vspace{-0.5cm}\begin{center} Works Cited \end{center}}{\newpage }
+
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -21,41 +28,33 @@
 }
 
 % Title content
-\title{Development and Implementation of\\Novel Pair Value Encryption System}
+\title{\vspace{-2cm}Development and Implementation of\\Novel Pair Value Encryption System}
 \author{Rushil Mallarapu\footnote{\textit{rushil.mallarapu@gmail.com}}}
-\date{June 6, 2021}
+\date{\vspace{-0.25cm} June 6, 2021}
 
 \begin{document}
 
 \maketitle
 
+\vspace{-0.5cm}
 \begin{abstract}
     Multiparty cryptography (MPC) is a cryptographic paradigm that seeks to have multiple, mutually distrustful parties compute a joint function of their inputs. Homomorphic encryption (HE) is a related, but distinct paradigm that seeks to allow arbitrary computations to be lifted over encrypted data. In both cases, general versions of such protocols are highly complex, requiring multiple rounds of communication, introducing implementation weaknesses and overheads which limit their practical efficacy. This research merges the insights behind these paradigms to develop what we term Pair Value Encryption (PVE), a lightweight protocol for performing arbitrary Boolean comparisons over encrypted data originating from potentially distrustful parties. We propose an abstract definition for PVE systems, demonstrate a protocol implementing this specification, and prove this protocol is both correct and secure. Python implementation and an example use case in patient matching in healthcare systems demonstrate both the low overhead and real-world applicability of this paradigm.
 \end{abstract}
 
 \keywords{Multiparty Communication, Homomorphic Encryption, RSA}
 
+\begin{multicols}{2}
+
 \section{Introduction}
 
+Cryptographic systems are designed to facilitate sensitive communication between secret agents. In the majority of standard practical protocols, such as RSA or Diffie-Hellman, these secret agents are mutually trustful, but are seeking to protect their communications from malicious external observers (Rivest 1). This means methods for communicating data in a secure fashion between agents are plentiful and well-developed. However, systems for allowing agents who are mutually distrustful – meaning that some of these agents have a dominant strategy of betraying their counterparts and stealing information – are relatively underdeveloped and complicated. Therefore, there is a need for understanding how to better design cryptographic systems that can connect decentralized parties and maximize total utility of a given scenario without avoiding unstable equilibria of trust.
 
-(Need for communication)
-(MPC)
-(Homomorphic encryption)
-(Failings)
-(Introduce PVE)
-(Contributions)
+One such family of systems is Multiparty Cryptography, or MPC (Halevi 2). In MPC, cryptographic systems seek to compute a joint function of the inputs of multiple distrustful parties such that no one party can discover the inputs of other parties. Moreover, it necessitates the assumption that while some parties may be malicious, in wanting to access data beyond their authorization, the exclusion of such parties from the protocol is untenable, which is reflective of real-world situations in which the inability to address hidden bad actors presents a serious security flaw. MPC is commonly proposed for utilization in voting systems, 
 
-Cryptographic systems are designed to facilitate sensitive communication between secret agents. In the majority of standard practical protocols, such as RSA or Diffie-Hellman, these secret agents are mutually trustful, but are seeking to protect their communications from malicious external observers.
+On the other hand, Homomorphic Encryption (HE), looks at low-trust communication from a more type-theoretic background. Such systems attempt to allow for arbitrary binary circuits to be computed over encrypted data\footnote{For readers with a type theory background, the notion of homomorphic encryption is similar to an "encryption" functor (or applicative functor) – monadic computation is technically more powerful than HE.}. This allows multiple potential applications in healthcare, banking, finance, and science.
 
-Intelligence operations often require secret agents to communicate with other agents from different organizations. When two spies meet to exchange secrets, they use a type of secret handshake to ensure that the parties participating in the exchange are the ones intended. For example, an FBI agent may want to communicate only with CIA agents, and if this is not the case, the communication should drop without revealing membership information and why the communication failed. This form of live drop communication,1 when parties are online and interact, has been implemented in cryptography and it is referred to as secret handshake (SH) protocol [10]. In SH, two parties agree on the same secret key only if they are both from the same group. Privacy is preserved in the sense that, if the handshake fails, nobody learns anything relevant other than the participants are not in the same group. In SH with dynamic matching [7], groups and roles can even be determined just before the protocol execution.
+However, both these paradigms have suffered from a lack of efficient implementations and theoretical hurdles associated with their expansivity and generalizability – the difficulty of developing a robust MPC or HE system scales superlinearly with problem size. Thus, we introduce a new paradigm, called Pair Value Encryption, or PVE, which combines the key insights from both MPC and HE to offer a simple, generalizable framework for efficient low-trust cryptosystems. We report the development of the theory behind PVE, an algorithm fulfilling this paradigm, and a Python implementation thereof.
 
-Malicious software, or malware, is used for a variety of unauthorized actions, from information theft to targeted denial of computational resources. Malware is estimated to cost the national economy between $57 billion and $109 billion, making it imperative to develop novel technologies to mitigate its ability to achieve its goals [1]. For it to do so, malware needs to communicate with a command and control (CC) center, to relay instructions, collect information, and receive updates. Botmasters – CC controllers – used to hardcode IPs to allow communicating with their malware, leading to the connections being shut down upon discovery of the malware. To address this, malware engineers designed domain generation algorithms (DGAs) to allow CC communication with malware could persist even after detection.
-
-Embedded into many forms of malware, domain generation algorithms work by randomly producing thousands of domain names and attempting to resolve all of them against its DNS server [2]-[3]. The botmaster only needs to have registered a few of these domain names. When the malware-embedded DGA generates a domain that the botmaster has registered, it is able to establish a valid IP address and communicate with the CC center. As such, detecting DGA domains presents an asymmetric challenge to defenders: with standard blacklisting, defenders would need to keep registering generatable domains, while attackers would only need one successful connection to communicate or execute malware [4]. DGA- based malware includes Conficker, Stuxnet (the malware such, cybersecurity methodologies require an intelligent way of detecting and responding to the use of DGAs by malware in order to assure network security.
-
-The binary classification problem this research addresses – detect whether a domain is maliciously generated or a genuine address – is well-researched in information security [5]. Knowledge of whether a domain name itself is genuine or malicious is especially useful, as gathering contextual information can present an additional overhead or may be unavailable within certain situations. Some algorithms use WHOIS and NXDomain records to gather rough predictions on whether a domain name is DGA. More recently, Curtin et al. proposed an RNN architecture for detecting DGA domains based on domain name and WHOIS data, but they acknowledged that their model was limited by disputes regarding the ability for open access to domain metadata [6].
-
-Standard techniques for DGA detection with machine learning over domain names involve classification based on engineered text features, but this makes the model both vulnerable to adversarial training and impeded in detecting classifiable boundaries when observed DGA features overlap with those of genuine domains [5]. The use of deep learning methodologies enables DGA detection algorithms to avoid the dependence on feature engineering, as such models learn implicit features. As such, active research on DGA detection focuses on developing various deep learning architectures suited to the task, see e.g. [5]-[7]. We report the development of DGAIntel, which implements a convolutional-recurrent architecture for binary DGA classification in a lightweight package easily deployable for usage by cybersecurity architects.
 
 \section{Theory}
 
@@ -63,16 +62,16 @@ In this section, we describe the general PVE protocol, describe an algorithm ach
 
 \subsection{PVE Protocol}
 
-Pair value encryption derives from a biomimetic influence – the core idea behind the protocol reflects the behavior of protein folding. In biological systems, chains of amino acids fold and combine into proteins, which can recognize other substrates and proteins by way of steric (i.e. in real space) matching. However, the key amino acid chain is obfuscated by the complex, often hard-to-predict process of protein folding\footnote{Of interest in this analogy is the fact that the protein folding problem is NP-complete}. Thus, the PVE protocol was derived to function on a similar basis – the encryption step should obfuscate plaintext values, but the comparison step should combine two matched ciphertext values to reduce to a simple Boolean variable.
+Pair value encryption derives from a biomimetic influence – the core idea behind the protocol reflects the behavior of protein folding. In biological systems, chains of amino acids fold and combine into proteins, which can recognize other substrates and proteins by way of steric (i.e. in real space) matching. However, the key amino acid chain is obfuscated by the complex, often hard-to-predict process of protein folding\footnote{Of interest in this analogy is the fact that the protein folding problem is NP-complete.}. Thus, the PVE protocol was derived to function on a similar basis – the encryption step should obfuscate plaintext values, but the comparison step should combine two matched ciphertext values to reduce to a simple Boolean variable.
 
-Consider an arbitrary set of potentially distrustful agents, each of has a secret value that they want to compare in some Boolean fashion to those of other agents. Let $X$ be the \textit{problem space}, or the set of possible values that an agent might take. Moreover, let $\phi:(X,X)\mapsto \{0,1\}$ be a binary comparison function over $X$. Let $Z$ be the \textit{plaintext space}, or set of values used to encode the problem set\footnote{Encrypted values are also in $Z$ – this has the benefit of meaning neither a malicious agent nor an outside observer can distinguish unencrypted from encrypted data}. This also implies the existance of an invertable mapping $\gamma:X\mapsto Z$, converting values in the problem space to the plaintext space. 
+Consider an arbitrary set of potentially distrustful agents, each of has a secret value that they want to compare in some Boolean fashion to those of other agents. Let $X$ be the \textit{problem space}, or the set of possible values that an agent might take. Moreover, let $\phi:(X,X)\mapsto \{0,1\}$ be a binary comparison function over $X$. Let $Z$ be the \textit{plaintext space}, or set of values used to encode the problem set\footnote{Encrypted values are also in $Z$ – this has the benefit of meaning neither a malicious agent nor an outside observer can distinguish unencrypted from encrypted data.}. This also implies the existance of an invertable mapping $\gamma:X\mapsto Z$, converting values in the problem space to the plaintext space. 
 
 The pair value encryption protocol is a set of three functions:
 
 \begin{enumerate}
     \item $e: (Z,K) \mapsto Z$ – encrypt values, based on an encryption key
     \item $c: (Z,Z) \mapsto \{0,1\}$ – compare encrypted values
-    \item $e: (Z,K) \mapsto Z$ – decrypt values, based on a decryption key
+    \item $d: (Z,K) \mapsto Z$ – decrypt values, based on a decryption key
 \end{enumerate}
 
 In order to preserve the structure of the scenario as between $X$ and $\phi$, which depend on the use case, and $Z$, which depends on the implementation, we require that $\gamma$ be constructed such that the following lemma hold true.
@@ -98,7 +97,7 @@ The implementation we present of the PVE system is based on the mathematics of R
         }
     }
     $d \leftarrow e^{-1} \pmod{\phi(n)}$\;
- \KwOut{(n,e,d)}
+ \KwOut{$(n,e,d)$}
  \caption{PVE Setup}
 \end{algorithm}
 
@@ -111,7 +110,7 @@ Note that a necessary postcondition of this PVE initialization step is that $de 
 \KwResult{Ciphertext ($z'\in Z$)}
     $z \leftarrow \gamma(x)$\;
     $z' \leftarrow z^e \pmod{n}$\;
- \KwOut{z'}
+ \KwOut{$z'$}
  \caption{PVE Encryption}
 \end{algorithm}
 
@@ -121,7 +120,7 @@ Note that a necessary postcondition of this PVE initialization step is that $de 
 \KwData{PVE modulus ($n$)}
 \KwResult{Comparison ($cmp\in \{0,1\}$)}
     $cmp \leftarrow z \cdot z' \pmod{n}$\;
- \KwOut{cmp}
+ \KwOut{$cmp$}
  \caption{PVE Comparison}
 \end{algorithm}
 
@@ -132,78 +131,64 @@ Note that a necessary postcondition of this PVE initialization step is that $de 
 \KwResult{Problem text ($x\in X$)}
     $z \leftarrow z'^d \pmod{n}$\;
     $x \leftarrow \gamma^{-1}(z)$\;
- \KwOut{x}
+ \KwOut{$x$}
  \caption{PVE Decryption}
 \end{algorithm}
 
+\subsection{Properties}
 
-Hello
+We now prove that the PVE algorithm will correctly compare and decrypt encrypted values.
 
-Hello
+\begin{theorem}[PVE Decryption Correctness]
+    Let $z\in Z$\footnote{We work directly from the plaintext space as $\gamma$ allows free interconversion.} be an plaintext value encrypted by the PVE system $(n,e,d)$. Then, it holds that $z \equiv \mathrm{Decrypt}(\mathrm{Encrypt}(z)) \pmod{n}$.
+\end{theorem}
+\begin{proof}
+    Let $z'\in Z$ be equal to $\mathrm{Encrypt(z)}$. Then, it holds by Algorithm 2 that $z' \equiv z^e \pmod{n}$. Applying $\mathrm{Decrypt}$ to both sides of this congruence as per Algorithm 4, we have that $z'^d \equiv z^{ed} \pmod{n}$. Thus, it remains to show that $z^{ed} \equiv z \pmod{n}$. We have that $de\equiv 1 \pmod{\phi(n)}$, which implies there exists some $k$ for which $ed = 1 + k\phi(n)$. We then have $z^{ed} \equiv z^{k\phi(n) + 1} \equiv z\cdot z^{k\phi(n)} \equiv z \pmod{n}$, with the last congruence following from Euler's theorem. It therefore holds that $z^{ed} \equiv z \pmod{n}$, thus completing the proof.
+\end{proof}
 
-\theorem{Correctness of PVE}
-Theory – Algorithm, Proof of Correctness, Proof of Reducability to Strong RSA
+\begin{theorem}[PVE Comparison Correctness]
+    Let $x,y\in X$ be a pair of problem values to be encrypted and compared by the PVE system $(n,e,d)$ and the comparison function $\phi$. Further, let $\gamma$ be chosen by the Preservation lemma as above. Then, $\phi(x,y) \iff \mathrm{Compare}(\mathrm{Encrypt}(\gamma(x)), \mathrm{Encrypt}(\gamma(y)))$
+\end{theorem}
+\begin{proof}
+    As per application of Algorithm 2, let $x' = \mathrm{Encrypt}(\gamma(x)) \equiv \gamma(x)^e \pmod{n}$ and likewise for $y'$. We can apply the Preservation lemma as per the quotient group $\mathbb{Z}/n\mathbb{Z}$ to conclude that $(\gamma(x)\gamma(y) == 1) \equiv \phi(x,y) \pmod{n}$. It remains to be shown that the comparison of the encrypted values is also congruent to $\phi(x,y)$. Observe that $x'\cdot y' \equiv (\gamma(x)\gamma(y))^e \pmod{n}$. If $\phi(x,y) = 1$, then $\gamma(x)\gamma(y) \equiv 1 \pmod{n}$, and so $x'y' \equiv \phi(x,y) \pmod{n}$. If not, then $(\gamma(x)\gamma(y))^e \not\equiv 1 \pmod{n}$, and $x'y' \equiv \phi(x,y) \pmod{n}$, thus completing the proof.
+\end{proof}
+
+Finally, we prove that the algorithm is equivalent in strength to RSA (Rivest 2).
+
+\begin{theorem}[PVE Strength]
+    Let there be a malicious agent with access to a ciphertext value $z'$ and the public section of the PVE system $(n,e)$. Then, it is impossible for this agent to access the plaintext value $z$.
+\end{theorem}
+\begin{proof}
+    Assume the agent can calculate $z$. This means the agent can solve the equation $z^e \equiv z' \pmod{n}$, which requires being able to either factor $n$ into its prime components or compute the discrete logarithm. In the first case, this task is at least as hard as integer factorization, and in the second, this task is known to be impervious to conventional methods for large $n$. Thus, we have that the agent's task is impossible for appropriately large $n$, thus completing the proof.
+\end{proof}
 
 \section{Implementation}
 
-Discussion – Reflect on performance, ease of implementation, and pitfalls in both RSA and PVE
+The PVE system described above was implemented using the Python programming language. In addition, there is an attached Jupyter Notebook which gives a real-world use case in matching patients to healthcare specialists. From this, it is clear that the PVE is far more straigtforward than MPC or HE, allowing for ease of implementation, which prevents coding bugs that might open potential security flaws. Moreover, the performance of the codebase is high, on-par with other Pythonic cryptographic libraries.
 
-Implementation – Python code, examples
+This implementation also emphasizes the importance of finding $\gamma$ such that the preservation lemma holds. We include a code sample for how such a function can be constructed, but the benefit of this protocol is that the construction of $\gamma$ can be tailored to the specifics of the scenario at hand. Note here a fundamental limitation in what PVE is capable of achieving – in initial studies, attempts were made to search for an algorithm that could preserve arbitrary inner products over encryption. However, any transformation which preserves all inner products must is orthogonal by definition, and orthogonal transformations over finite-dimensional vector spaces are trivially invertable, making such a scheme highly vulnerable.
+
+Something of note is that, due to its venerability, RSA has attracted many efforts to break both its theoretical basis – by developing heuristic algorithms that can efficiently perform integer factorization or solve discrete logarithms – or its practical realization – finding vulnerabilities in published and popular cryptographic libraries and distributing knowledge of these vulnerabilities through the dark web\footnote{Note that the dark web is distinct from the deep web; the latter is simply the set of web sites not indexed by any search engine, whereas the former is a subset of the deep web used for nefarious and illicit activity.}. Due to the similarity of RSA and our presented PVE implementation, PVE is technically vulnerable to the same risks.
+
+However, the long-term usage of RSA is indicative of how reliable the system is on average, meaning PVE implementations based on RSA technology are likely to stay salient up until RSA itself is broken, which would practically occur after the advent of large-scale quantum computing technology. Moreover, as PVE is primarily a protocol and not necessarily tied to any implementation, a more long-term solution would be to reimplement this protocol either using elliptic-curve fields, or with quantum encryption techniques themselves. As such, PVE's potential pitfalls are both minor and easily remedied.
 
 \section{Conclusion}
 
-\newpage
+In summary, we have developed the pair value encryption protocol, an amalgamation of MPC and homomorphic encryption paradigms that addresses unique problem spaces in cryptographic communication. We exhibit an algorithm for this protocol, prove its correctness and security, and describe our results with a Python implementation. PVE presents a powerful paradigm for cryptographically secure healthcare, hiring, matching, and other low-trust, decentralized applications. The codebase for our implementaiton has been open-sourced to allow for public analysis. Future work will focus on extending this protocol with more secure algorithms and developing production libraries backing up demonstrable real-world use cases.
 
-Use Euler's theorem to compute:
+\end{multicols}
 
-\begin{enumerate}
-    \item $5^{60} \pmod{21}$
-    \item $2^{35} \pmod{35}$
-\end{enumerate}
+\begin{workscited}
 
-\subsection{}
+\bibent
+Halevi, Shai, et al. “Round-Optimal Secure Multi-Party Computation.” \textit{Journal of Cryptology}, vol. 34, no. 3, 2021, doi:10.1007/s00145-021-09382-3.
 
-First, we verify that 5 and 21 are coprime, which they are. Then, we compute $\phi(21)$ via the standard route of decomposing 21 as its prime factorization $21 = 3\cdot 7$. Thus, $\phi(21) = \phi(3)\phi(7) = 2 \cdot 6 = 12$. Now, by Euler's theorem, it holds that $5^{12} \equiv 1 \pmod{21}$. Dividing 60 by 12 gives $60 = 5 \cdot 12 + 0$, by the division algorithm. Therefore, $5^{60} \equiv (5^{12})^5 \equiv 1^5 \equiv 1 \pmod{21}$. Thus, $5^{60} \equiv 1 \pmod{21}$.
+\bibent
+Rivest, Ronald L., and Burt Kaliski. "RSA Problem." \textit{MIT Laboratory for Computer Science}, 2003.
 
-\subsection{}
+\bibent
+Tseng, Yi-Fan, et al. “Homomorphic Encryption Supporting Logical Operations.” \textit{Proceedings of the 2017 International Conference on Telecommunications and Communication Engineering - ICTCE '17}, 2017, doi:10.1145/3145777.3145789.
 
-As before, we verify that 2 and 35 are coprime, which they are. Next, we compute $\phi(35)$ by decomposing 35 as its prime factorization $35 = 5 \cdot 7$. Thus, $\phi(35) = \phi(5)\phi(7) = 4 \cdot 6 = 24$. Now, by Euler's theorem, it holds that $2^{24} \equiv 1 \pmod{35}$. Dividing 35 by 24 gives $35 = 1 \cdot 24 + 11$, by the division algorithm. Therefore, $2^{35} \equiv (2^{24})^1 \cdot 2^{11} \equiv 1^1 \cdot 2^{11} \equiv 2048 \pmod{35}$. From here, we can use the division algorithm to divide 2048 by 35, giving $2048 = 58 \cdot 35 + 18$. Thus, $2^{35} \equiv 18 \pmod{35}$.
-
-\section{}
-
-Find the last two digits of $123^{403}$.
-
-\subsection{}
-
-We want to find the value of $123^{403} \pmod{100}$. First, we verify that 123 and 100 are coprime, as indeed they are. Now, we find $\phi(100) = \phi(2^2 \cdot 5^2) = \phi(2^2)\phi(5^2) = (4 - 2)(25 - 5) = 2 \cdot 20 = 40$ as per the usual method. Thus, by Euler's theorem, we have that $123^{40} \equiv 1 \pmod{100}$. Using the division algorithm, we have that $403 = 10 \cdot 40 + 3$. As such, $123^{403} \equiv (123^{40})^10 \cdot 123^3 \equiv 1^10 \cdot 123^3 \equiv 123^3 \equiv 1860867 \pmod{100}$. Finally, taking the last two digits of this, we have that $123^3 \equiv 67 \pmod{100}$. Thus, the final two digits of $123^{403}$ are 67.
-
-\section{}
-
-Alice chooses primes $p=17$ and $q=23$, as well as public key 7. What is the RSA decryption exponent?
-
-\subsection{}
-
-Here, we start by applying the RSA cryptosystem to generate the modulus $n = pq$, which here is $n = 17 \cdot 23 = 391$. We also compute $\phi(n) = (p - 1)(q - 1) = 16 \cdot 22 = 352$ Next, the public encryption key is $e=7$, and it is trivial to verify that 7 and 352 are coprime. Now, we must find the decryption key $d$ by solving $ed \equiv 1 \pmod{\phi(n)}$, or $7d \equiv 1 \pmod{352}$.
-
-To solve this, we start by knowing that $\gcd(7, 352)$ is of course one, so there will be only one unique solution $d$. Now, we apply the extended Euclidean algorithm to (352, 7).
-
-\begin{align*}
-    & \gcd(352,7) & & 352 = 50 \cdot 7 + 2 \\
-    = & \gcd(7,2) & & 7 = 3 \cdot 2 + 1 \\
-    = & \gcd(2, 1) & & 2 = 2 \cdot 1 + 0 \\
-    = & 1
-\end{align*}
-
-$$
-\begin{matrix}
-  & x & y\\
-352 & 1 & 0 \\
-7 & 0 & 1 \\
-2 & 1 & -50 \\
-1 & -3 & 151 \\
-\end{matrix}
-$$
-
-Therefore, the solution to this congruence is $d \equiv 151 \cdot 1 \equiv 151 \pmod{352}$, and it is easy to verify that $7 \cdot 151 \equiv 1057 \equiv 1 \pmod{352}$. Thus, the decryption exponent is $d=151$.
+\end{workscited}
 
 \end{document}
